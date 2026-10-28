@@ -21,13 +21,13 @@ button{background:#173f80;color:white;border:0;border-radius:7px;padding:10px 16
 </head>
 <body><main>
 <h1>Keynesian Cross: Aggregate Expenditure</h1>
-<p class="muted">Adjust autonomous spending, exports, imports, taxes, and the marginal propensity to consume. The graph compares the saved baseline with your current settings and updates immediately. All values are illustrative model units.</p>
+<p class="muted">Adjust autonomous spending, taxes, and the marginal propensity to consume. The graph compares the saved baseline with your current settings and updates immediately. All values are illustrative model units.</p>
 <div class="layout">
 <section class="panel">
 <h2>Model parameters</h2>
 <div id="controls"></div>
 <button id="baseline">Set current values as baseline</button> <button id="reset">Reset defaults</button>
-<p><small>Investment, government spending, taxes, exports, and imports are exogenous. The model assumes a fixed price level and no capacity constraint.</small></p>
+<p><small>Investment, government spending, taxes, and net exports are exogenous. The model assumes a fixed price level and no capacity constraint.</small></p>
 </section>
 <section class="panel">
 <h2>Planned expenditure and output</h2>
@@ -36,7 +36,6 @@ button{background:#173f80;color:white;border:0;border-radius:7px;padding:10px 16
 <div class="stat"><small>Equilibrium output Y*</small><b id="out"></b></div>
 <div class="stat"><small>Spending multiplier</small><b id="mult"></b></div>
 <div class="stat"><small>Tax multiplier</small><b id="taxmult"></b></div>
-<div class="stat"><small>Trade balance (X − M)</small><b id="trade"></b><small id="tradestatus"></small></div>
 <div class="stat"><small>Baseline output</small><b id="baseout"></b></div>
 <div class="stat"><small>Change in output (ΔY)</small><b id="delta"></b></div>
 <div class="stat"><small>Change in autonomous AE at Y=0</small><b id="deltaa"></b></div>
@@ -53,12 +52,12 @@ button{background:#173f80;color:white;border:0;border-radius:7px;padding:10px 16
 <section class="panel equations">
 <h2>Model logic</h2>
 <div class="eq">C = c₀ + c₁(Y − T)</div>
-<div class="eq">AE = C + I + G + X − M</div>
-<div class="eq">AE = (c₀ − c₁T + I + G + X − M) + c₁Y</div>
-<div class="eq">Y* = (c₀ − c₁T + I + G + X − M) / (1 − c₁)</div>
+<div class="eq">AE = C + I + G + NX</div>
+<div class="eq">AE = (c₀ − c₁T + I + G + NX) + c₁Y</div>
+<div class="eq">Y* = (c₀ − c₁T + I + G + NX) / (1 − c₁)</div>
 <div class="eq">Spending multiplier = 1 / (1 − c₁)</div>
 <div class="eq">Tax multiplier = −c₁ / (1 − c₁)</div>
-<p class="muted">The green dashed expenditure schedule represents the saved baseline, and the blue schedule represents the current slider settings. Use “Set current values as baseline” to start a new comparison. If c₁ changes, the AE slope and multiplier change, so ΔY need not equal the original spending multiplier times the change in autonomous spending. At equilibrium, planned aggregate expenditure equals output (AE = Y). Above the 45-degree line, planned spending exceeds production and inventories fall, encouraging firms to raise output. Below it, inventories accumulate and firms reduce output. Lump-sum taxes affect consumption through disposable income; exports and imports are autonomous here. A positive X − M is a trade surplus, while a negative X − M is a trade deficit.</p>
+<p class="muted">The green dashed expenditure schedule represents the saved baseline, and the blue schedule represents the current slider settings. Use “Set current values as baseline” to start a new comparison. If c₁ changes, the AE slope and multiplier change, so ΔY need not equal the original spending multiplier times the change in autonomous spending. At equilibrium, planned aggregate expenditure equals output (AE = Y). Above the 45-degree line, planned spending exceeds production and inventories fall, encouraging firms to raise output. Below it, inventories accumulate and firms reduce output. Lump-sum taxes affect consumption through disposable income; net exports are autonomous here.</p>
 </section>
 </main>
 <script>
@@ -68,13 +67,12 @@ const specs=[
  ['I','Investment (I)',60,0,200,5],
  ['G','Government spending (G)',80,0,200,5],
  ['T','Lump-sum taxes (T)',50,0,200,5],
- ['X','Exports (X)',60,0,200,5],
- ['M','Imports (M)',40,0,200,5]
+ ['NX','Net exports (NX)',20,-100,150,5]
 ];
 const defaults=Object.fromEntries(specs.map(s=>[s[0],s[2]]));
 const state={...defaults};
 let baseline={...defaults};
-function calc(v){const A=v.c0-v.c1*v.T+v.I+v.G+v.X-v.M;return {A,Y:A/(1-v.c1)}}
+function calc(v){const A=v.c0-v.c1*v.T+v.I+v.G+v.NX;return {A,Y:A/(1-v.c1)}}
 const container=document.getElementById('controls');
 for(const [key,label,def,min,max,step] of specs){
  const div=document.createElement('div');div.className='control';
@@ -91,13 +89,11 @@ document.getElementById('reset').onclick=()=>{baseline={...defaults};for(const [
 const canvas=document.getElementById('chart'),ctx=canvas.getContext('2d');
 function render(){
  for(const [k] of specs)document.getElementById('v-'+k).textContent=k==='c1'?state[k].toFixed(2):state[k].toFixed(0);
- const {c0,c1,I,G,T,X,M}=state;
+ const {c0,c1,I,G,T,NX}=state;
  const {A,Y}=calc(state), base=calc(baseline);
  document.getElementById('out').textContent=Y.toFixed(1);
  document.getElementById('mult').textContent=(1/(1-c1)).toFixed(2);
  document.getElementById('taxmult').textContent=(-c1/(1-c1)).toFixed(2);
- document.getElementById('trade').textContent=(X-M>=0?'+':'')+(X-M).toFixed(0);
- document.getElementById('tradestatus').textContent=X>M?'Trade surplus':X<M?'Trade deficit':'Balanced trade';
  document.getElementById('baseout').textContent=base.Y.toFixed(1);
  document.getElementById('delta').textContent=(Y-base.Y>=0?'+':'')+(Y-base.Y).toFixed(1);
  document.getElementById('deltaa').textContent=(A-base.A>=0?'+':'')+(A-base.A).toFixed(1);
